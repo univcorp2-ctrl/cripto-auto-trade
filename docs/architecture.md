@@ -4,10 +4,10 @@
 flowchart TD
   Browser[Simple Dashboard] --> FastAPI[FastAPI API]
   FastAPI --> Strategies[Strategy Catalog]
-  FastAPI --> CSV[Sample CSV]
+  FastAPI --> Sample[Generated Sample Data]
   FastAPI --> CCXT[CCXT Public OHLCV]
   Strategies --> Backtester[Backtest Engine]
-  CSV --> Backtester
+  Sample --> Backtester
   CCXT --> Backtester
   Backtester --> Metrics[Metrics + Equity Curve]
   Metrics --> Browser
@@ -24,6 +24,11 @@ flowchart TD
 - Live trading is locked behind environment variables.
 - Validation can run hundreds of deterministic loops.
 
-## Why FastAPI + static UI
+## Runtime flow
 
-FastAPI serves the API and static files. The frontend is plain HTML/CSS/JS for simplicity and easy GitHub review.
+1. User selects strategy and market.
+2. API loads generated sample candles or live OHLCV via CCXT.
+3. Strategy generates BUY / SELL / HOLD target-position signals.
+4. Backtester simulates fee, slippage, equity curve, trades, drawdown and Sharpe-like score.
+5. UI displays metrics and chart.
+6. Paper/live executors reuse the same signal and risk guard.
