@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cripto Auto Trade</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Selectable Strategy Crypto Bot</p>
+        <h1>Cripto Auto Trade</h1>
+        <p>戦略を選ぶ → バックテスト → フォワードテスト → リアルタイム検証 → 紙取引 → 実売買。</p>
+      </div>
+      <div class="status-card">
+        <span id="healthDot" class="dot"></span>
+        <span id="healthText">Checking...</span>
+      </div>
+    </section>
+
+    <section class="panel controls">
+      <label>Strategy<select id="strategy"></select></label>
+      <label>Data<select id="dataSource"><option value="sample">Sample</option><option value="live">Live OHLCV</option></select></label>
+      <label>Exchange<input id="exchange" value="binance" /></label>
+      <label>Symbol<input id="symbol" value="BTC/USDT" /></label>
+      <label>Timeframe<input id="timeframe" value="1h" /></label>
+      <label>Loops<input id="iterations" type="number" value="200" min="10" max="500" /></label>
+      <button id="runBacktest">Backtest</button>
+      <button id="runForward">Forward Test</button>
+      <button id="runRealtime">Realtime Validate</button>
+      <button id="runCompare">Compare All</button>
+    </section>
+
+    <section class="cards">
+      <article class="card"><span>Total Return</span><strong id="totalReturn">-</strong></article>
+      <article class="card"><span>Max Drawdown</span><strong id="drawdown">-</strong></article>
+      <article class="card"><span>Sharpe-like</span><strong id="sharpe">-</strong></article>
+      <article class="card"><span>Trades</span><strong id="trades">-</strong></article>
+      <article class="card"><span>Latest Signal</span><strong id="latestSignal">-</strong></article>
+    </section>
+
+    <section class="grid">
+      <article class="panel chart-panel">
+        <div class="panel-title"><h2>Equity Curve</h2><span id="chartSubtitle">Run a test</span></div>
+        <canvas id="equityChart"></canvas>
+      </article>
+      <article class="panel">
+        <div class="panel-title"><h2>Latest Reason</h2></div>
+        <pre id="latestJson">{}</pre>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title"><h2>Strategy Comparison</h2><span>バックテスト/フォワード/検証結果</span></div>
+      <div class="table-wrap"><table id="comparison"><thead><tr><th>Strategy</th><th>Return</th><th>Drawdown</th><th>Trades</th><th>Verdict</th></tr></thead><tbody></tbody></table></div>
+    </section>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>
