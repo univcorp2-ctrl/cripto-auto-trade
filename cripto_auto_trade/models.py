@@ -31,10 +31,6 @@ class Candle:
             raise ValueError(f"non-positive OHLC at {self.timestamp}")
         if self.high < self.low:
             raise ValueError(f"high < low at {self.timestamp}")
-        if not self.low <= self.open <= self.high:
-            raise ValueError(f"open outside candle range at {self.timestamp}")
-        if not self.low <= self.close <= self.high:
-            raise ValueError(f"close outside candle range at {self.timestamp}")
 
 
 @dataclass(frozen=True)
@@ -82,10 +78,7 @@ class BacktestResult:
             "sharpe_like": round(self.sharpe_like, 6),
             "win_rate": round(self.win_rate, 6),
             "trade_count": len(self.trades),
-            "equity_curve": [
-                {"timestamp": timestamp, "equity": round(equity, 6)}
-                for timestamp, equity in self.equity_curve
-            ],
+            "equity_curve": [{"timestamp": t, "equity": round(e, 6)} for t, e in self.equity_curve],
             "trades": [trade.__dict__ for trade in self.trades],
             "latest_signal": self.signals[-1].__dict__ if self.signals else None,
         }
