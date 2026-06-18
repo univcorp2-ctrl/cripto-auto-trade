@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cripto-auto-trade"
+version = "0.1.0"
+description = "Selectable-strategy crypto auto-trading bot with dashboard, backtest, forward test, real-time validation, paper and guarded live trading."
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{name = "GitHub-GPT Developer"}]
+dependencies = []
+
+[project.optional-dependencies]
+web = ["fastapi>=0.115", "uvicorn>=0.30"]
+live = ["ccxt>=4.4"]
+dev = ["pytest>=8.0", "ruff>=0.6", "fastapi>=0.115", "uvicorn>=0.30"]
+all = ["pytest>=8.0", "ruff>=0.6", "fastapi>=0.115", "uvicorn>=0.30", "ccxt>=4.4"]
+
+[project.scripts]
+cripto-auto-trade = "cripto_auto_trade.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["cripto_auto_trade*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = []
