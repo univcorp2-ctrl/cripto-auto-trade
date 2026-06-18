@@ -13,10 +13,9 @@ from cripto_auto_trade.strategies import build_strategy
 LIVE_ACK = "I_UNDERSTAND_THIS_CAN_LOSE_MONEY"
 
 
-def paper_once(strategy_name: str, data: str, quote_order_size: float = 25.0) -> dict[str, Any]:
+def paper_once(strategy_name: str, data: str | None = None, quote_order_size: float = 25.0) -> dict[str, Any]:
     candles = choose_candles(data, False, "binance", "BTC/USDT", "1h", 350)
-    strategy = build_strategy(strategy_name)
-    signal = strategy.generate_signals(candles)[-1]
+    signal = build_strategy(strategy_name).generate_signals(candles)[-1]
     decision = RiskGuard().check(signal, quote_order_size)
     price = candles[-1].close
     if not decision.allowed:
@@ -31,7 +30,7 @@ def paper_once(strategy_name: str, data: str, quote_order_size: float = 25.0) ->
     if signal.action == "BUY":
         spend = min(quote, decision.quote_order_size)
         fee = spend * 0.001
-        qty = (spend - fee) / price
+        qty = max(0.0, spend - fee) / price
         quote -= spend
         base += qty
         side = "BUY"
