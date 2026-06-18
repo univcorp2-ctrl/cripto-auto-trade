@@ -5,7 +5,8 @@ from collections.abc import Sequence
 
 
 def sma(values: Sequence[float], window: int) -> list[float | None]:
-    _validate_window(window)
+    if window <= 0:
+        raise ValueError("window must be positive")
     out: list[float | None] = []
     total = 0.0
     for i, value in enumerate(values):
@@ -17,7 +18,8 @@ def sma(values: Sequence[float], window: int) -> list[float | None]:
 
 
 def ema(values: Sequence[float], window: int) -> list[float | None]:
-    _validate_window(window)
+    if window <= 0:
+        raise ValueError("window must be positive")
     if not values:
         return []
     alpha = 2 / (window + 1)
@@ -30,7 +32,6 @@ def ema(values: Sequence[float], window: int) -> list[float | None]:
 
 
 def rsi(values: Sequence[float], window: int = 14) -> list[float | None]:
-    _validate_window(window)
     if len(values) < 2:
         return [None for _ in values]
     out: list[float | None] = [None]
@@ -45,42 +46,31 @@ def rsi(values: Sequence[float], window: int = 14) -> list[float | None]:
             continue
         avg_gain = sum(gains[i - window : i]) / window
         avg_loss = sum(losses[i - window : i]) / window
-        if avg_loss == 0:
-            out.append(100.0)
-        else:
-            rs = avg_gain / avg_loss
-            out.append(100 - 100 / (1 + rs))
-    return out
-
-
-def true_range(highs: Sequence[float], lows: Sequence[float], closes: Sequence[float]) -> list[float]:
-    out: list[float] = []
-    for i, high in enumerate(highs):
-        low = lows[i]
-        if i == 0:
-            out.append(high - low)
-        else:
-            prev_close = closes[i - 1]
-            out.append(max(high - low, abs(high - prev_close), abs(low - prev_close)))
+        out.append(100.0 if avg_loss == 0 else 100 - 100 / (1 + avg_gain / avg_loss))
     return out
 
 
 def atr(highs: Sequence[float], lows: Sequence[float], closes: Sequence[float], window: int) -> list[float | None]:
-    return sma(true_range(highs, lows, closes), window)
+    tr: list[float] = []
+    for i, high in enumerate(highs):
+        low = lows[i]
+        if i == 0:
+            tr.append(high - low)
+        else:
+            prev = closes[i - 1]
+            tr.append(max(high - low, abs(high - prev), abs(low - prev)))
+    return sma(tr, window)
 
 
 def rolling_high(values: Sequence[float], window: int) -> list[float | None]:
-    _validate_window(window)
     return [None if i + 1 < window else max(values[i + 1 - window : i + 1]) for i in range(len(values))]
 
 
 def rolling_low(values: Sequence[float], window: int) -> list[float | None]:
-    _validate_window(window)
     return [None if i + 1 < window else min(values[i + 1 - window : i + 1]) for i in range(len(values))]
 
 
 def rolling_zscore(values: Sequence[float], window: int) -> list[float | None]:
-    _validate_window(window)
     out: list[float | None] = []
     for i in range(len(values)):
         if i + 1 < window:
@@ -105,8 +95,7 @@ def bollinger_bands(values: Sequence[float], window: int = 20, multiple: float =
             continue
         segment = values[i + 1 - window : i + 1]
         mean = middle[i] or 0.0
-        variance = sum((value - mean) ** 2 for value in segment) / window
-        std = math.sqrt(variance)
+        std = math.sqrt(sum((value - mean) ** 2 for value in segment) / window)
         upper.append(mean + multiple * std)
         lower.append(mean - multiple * std)
     return middle, upper, lower
@@ -131,20 +120,10 @@ def max_drawdown(equity_values: Sequence[float]) -> float:
 
 
 def sharpe_like(equity_curve: Sequence[tuple[str, float]], periods_per_year: int = 365 * 24) -> float:
-    returns: list[float] = []
-    for i in range(1, len(equity_curve)):
-        prev = equity_curve[i - 1][1]
-        current = equity_curve[i][1]
-        if prev > 0:
-            returns.append(current / prev - 1)
+    returns = [(equity_curve[i][1] / equity_curve[i - 1][1]) - 1 for i in range(1, len(equity_curve)) if equity_curve[i - 1][1] > 0]
     if len(returns) < 2:
         return 0.0
     mean = sum(returns) / len(returns)
     variance = sum((value - mean) ** 2 for value in returns) / (len(returns) - 1)
     std = math.sqrt(variance)
     return 0.0 if std == 0 else mean / std * math.sqrt(periods_per_year)
-
-
-def _validate_window(window: int) -> None:
-    if window <= 0:
-        raise ValueError("window must be positive")
