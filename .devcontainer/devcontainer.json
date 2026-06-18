@@ -1,0 +1,10 @@
+{
+  "name": "cripto-auto-trade",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "charliermarsh.ruff"]
+    }
+  },
+  "postCreateCommand": "python -m pip install --upgrade pip && pip install -e '.[dev,web,live]'"
+}
