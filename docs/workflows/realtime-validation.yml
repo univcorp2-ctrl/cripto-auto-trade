@@ -1,0 +1,28 @@
+# Backup copy of .github/workflows/realtime-validation.yml
+name: Realtime Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      exchange:
+        required: false
+        default: binance
+      symbol:
+        required: false
+        default: BTC/USDT
+      timeframe:
+        required: false
+        default: 1h
+  schedule:
+    - cron: '17 */6 * * *'
+
+jobs:
+  validate-live-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -e '.[dev,web,live]'
+      - run: python -m cripto_auto_trade.cli realtime --live-data --exchange "${{ inputs.exchange || 'binance' }}" --symbol "${{ inputs.symbol || 'BTC/USDT' }}" --timeframe "${{ inputs.timeframe || '1h' }}" --strategy regime_guard
