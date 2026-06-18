@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
@@ -21,7 +20,6 @@ def create_app() -> Any:
         from fastapi.staticfiles import StaticFiles
     except ImportError as exc:
         raise ImportError("Install web dependencies first: pip install -e '.[web]'") from exc
-
     app = FastAPI(title="Cripto Auto Trade", version="0.1.0")
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -38,39 +36,18 @@ def create_app() -> Any:
         return {"strategies": strategy_descriptions()}
 
     @app.get("/api/backtest")
-    def api_backtest(
-        strategy: str = Query("regime_guard", enum=strategy_names()),
-        data_source: str = "sample",
-        exchange: str = "binance",
-        symbol: str = "BTC/USDT",
-        timeframe: str = "1h",
-        limit: int = 350,
-    ) -> dict[str, object]:
-        candles = choose_candles("data/sample_btc_usdt_1h.csv", data_source == "live", exchange, symbol, timeframe, limit)
+    def api_backtest(strategy: str = Query("regime_guard", enum=strategy_names()), data_source: str = "sample", exchange: str = "binance", symbol: str = "BTC/USDT", timeframe: str = "1h", limit: int = 350) -> dict[str, object]:
+        candles = choose_candles(None, data_source == "live", exchange, symbol, timeframe, limit)
         return Backtester(build_strategy(strategy)).run(candles).as_dict()
 
     @app.get("/api/forward-test")
-    def api_forward(
-        strategy: str = Query("regime_guard", enum=strategy_names()),
-        data_source: str = "sample",
-        exchange: str = "binance",
-        symbol: str = "BTC/USDT",
-        timeframe: str = "1h",
-        limit: int = 350,
-    ) -> dict[str, object]:
-        candles = choose_candles("data/sample_btc_usdt_1h.csv", data_source == "live", exchange, symbol, timeframe, limit)
+    def api_forward(strategy: str = Query("regime_guard", enum=strategy_names()), data_source: str = "sample", exchange: str = "binance", symbol: str = "BTC/USDT", timeframe: str = "1h", limit: int = 350) -> dict[str, object]:
+        candles = choose_candles(None, data_source == "live", exchange, symbol, timeframe, limit)
         return forward_test(build_strategy(strategy), candles)
 
     @app.get("/api/realtime")
-    def api_realtime(
-        strategy: str = Query("regime_guard", enum=strategy_names()),
-        exchange: str = "binance",
-        symbol: str = "BTC/USDT",
-        timeframe: str = "1h",
-        live: bool = False,
-        limit: int = 350,
-    ) -> dict[str, object]:
-        candles = choose_candles("data/sample_btc_usdt_1h.csv", live, exchange, symbol, timeframe, limit)
+    def api_realtime(strategy: str = Query("regime_guard", enum=strategy_names()), exchange: str = "binance", symbol: str = "BTC/USDT", timeframe: str = "1h", live: bool = False, limit: int = 350) -> dict[str, object]:
+        candles = choose_candles(None, live, exchange, symbol, timeframe, limit)
         result = Backtester(build_strategy(strategy)).run(candles).as_dict()
         result["source"] = "live" if live else "sample"
         result["symbol"] = symbol
@@ -79,17 +56,17 @@ def create_app() -> Any:
 
     @app.get("/api/compare")
     def api_compare(data_source: str = "sample", exchange: str = "binance", symbol: str = "BTC/USDT", timeframe: str = "1h", limit: int = 350) -> dict[str, object]:
-        candles = choose_candles("data/sample_btc_usdt_1h.csv", data_source == "live", exchange, symbol, timeframe, limit)
+        candles = choose_candles(None, data_source == "live", exchange, symbol, timeframe, limit)
         return {"backtest": compare_all_strategies(candles), "forward": forward_all_strategies(candles)}
 
     @app.get("/api/validate")
     def api_validate(iterations: int = 200, data_source: str = "sample", exchange: str = "binance", symbol: str = "BTC/USDT", timeframe: str = "1h", limit: int = 350) -> dict[str, object]:
-        candles = choose_candles("data/sample_btc_usdt_1h.csv", data_source == "live", exchange, symbol, timeframe, limit)
+        candles = choose_candles(None, data_source == "live", exchange, symbol, timeframe, limit)
         return run_validation_matrix(candles, iterations)
 
     @app.post("/api/paper-once")
     def api_paper(strategy: str = Query("regime_guard", enum=strategy_names()), quote_order_size: float = 25.0) -> dict[str, object]:
-        return paper_once(strategy, "data/sample_btc_usdt_1h.csv", quote_order_size)
+        return paper_once(strategy, None, quote_order_size)
 
     return app
 
